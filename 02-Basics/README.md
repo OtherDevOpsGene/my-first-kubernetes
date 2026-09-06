@@ -58,7 +58,7 @@ kubectl get pods
 
 Currently, we have not started any pods.
 
-We can run the same **Bookinfo** microservices application as before, but this
+We can run the same **BookInfo** microservices application as before, but this
 time using Kubernetes.
 
 <img src="../bookinfo-basic.svg">
@@ -68,9 +68,9 @@ As a reminder, requests come into `productpage`. That service makes requests to
 ignore `ratings` for now.
 
 ```shell
-kubectl run reviews --image docker.io/istio/examples-bookinfo-reviews-v1:1.20.2
-kubectl run details --image docker.io/istio/examples-bookinfo-details-v1:1.20.2
-kubectl run productpage --image docker.io/istio/examples-bookinfo-productpage-v1:1.20.2
+kubectl run reviews --image docker.io/istio/examples-bookinfo-reviews-v1:1.20.3
+kubectl run details --image docker.io/istio/examples-bookinfo-details-v1:1.20.3
+kubectl run productpage --image docker.io/istio/examples-bookinfo-productpage-v1:1.20.3
 ```
 
 That isn't significantly different than starting the containers with Docker,
@@ -94,8 +94,8 @@ Adding the output format (`-o wide`) gets us a little more information about
 each pod. Notice that the cluster has assigned an internal IP address to each of
 the pods.
 
-We can also see that the pods have all be *scheduled* on the same node, not that
-there were any alternatives at this point.
+We can also see that the pods have all been *scheduled* on the same node, not
+that there were any alternatives at this point.
 
 If we wanted to really deep-dive into a pod, we can use the `kubectl describe`
 *resource_type* *resource_name* command.
@@ -131,5 +131,5 @@ if we want.
 
 ## End of lesson
 
-We will get the **Bookinfo** application actually running in the next lesson,
+We will get the **BookInfo** application actually running in the next lesson,
 [03-Networking](../03-Networking/README.md).

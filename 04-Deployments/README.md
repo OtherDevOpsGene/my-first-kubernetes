@@ -1,7 +1,7 @@
 # Using Deployments
 
 Pods may be a basic building block for Kubernetes, but they don't add much
-beyond Docker containers. If we want to take advantage of Kuberenetes
+beyond Docker containers. If we want to take advantage of Kubernetes
 orchestration capabilities, we need to use something more powerful.
 
 ## Deployments
@@ -13,14 +13,14 @@ Creating deployments is almost the same as running the pods- instead of
 `kubectl run` use `kubectl create deployment`.
 
 ```shell
-kubectl create deployment reviews --image docker.io/istio/examples-bookinfo-reviews-v1:1.20.2
-kubectl create deployment details --image docker.io/istio/examples-bookinfo-details-v1:1.20.2
-kubectl create deployment productpage --image docker.io/istio/examples-bookinfo-productpage-v1:1.20.2
+kubectl create deployment reviews --image docker.io/istio/examples-bookinfo-reviews-v1:1.20.3
+kubectl create deployment details --image docker.io/istio/examples-bookinfo-details-v1:1.20.3
+kubectl create deployment productpage --image docker.io/istio/examples-bookinfo-productpage-v1:1.20.3
 kubectl get deployments
 kubectl get pods
 ```
 
-We can see the naming has become somewhat more involved. We can explore that
+We can see the naming has become somewhat more involved. We will explore that
 once we have the application fully running with deployments.
 
 Also, notice that we are still using the imperative form. Not for much longer.
@@ -52,7 +52,7 @@ kubectl get pods
 ```
 
 The pod we deleted has been replaced with another pod with a similar name. In
-fact, only last random string is different.
+fact, only last random string is different. Notice the `AGE` column.
 
 Let's make sure it is still working the same before we get into what happened
 behind the scenes.
@@ -84,7 +84,7 @@ kubectl get deployments,replicasets,pods
 There is still only one `deployment` and one `replicaset` each, but `details` now
 has 2 `pods`. That is main function of a replica set, but we will probably
 never deal with a replica set on its own. We will use it via a deployment, and
-we'll check out some of the other capabilities of deployemnts later.
+we'll check out some of the other capabilities of deployments later.
 
 ## Declarative
 
@@ -130,7 +130,7 @@ kubectl get deployment reviews -o yaml > reviews.yaml
 
 Double-click on `reviews.yaml` in the left-hand tool bar. Now you can use the
 visual editor to change to 2 replicas and save. (An &#x2715; in the tab will
-replace the white &#x20DD; when the editor is saved.)
+replace the white &#x9675; when the editor is saved.)
 
 ```shell
 kubectl apply -f reviews.yaml
@@ -267,6 +267,6 @@ kubectl explain deployments.spec.template.spec.containers
 
 ## End of lesson
 
-We will get back to the capabilities of deployments soon. But next, we'll do
-some more with Kubernetes manifests and networking in
+We will get back to the capabilities of deployments soon. But before that, we'll
+do some more with Kubernetes manifests and networking in
 [05-Ingress](../05-Ingress/README.md).

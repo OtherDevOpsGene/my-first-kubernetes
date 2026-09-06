@@ -4,16 +4,17 @@ Most of the time we will use `kubectl apply` to declare and implement the
 desired state for our cluster. But if we are using third-party code, often we'll
 use a package manager called [Helm](https://helm.sh/) to allow for more flexible
 deployments in various environments. With vanilla manifests, even remote ones,
-especially remote ones, all the settings are hard-coded. 
+especially remote ones, all the settings are hard-coded.
 
-Helm is preinstalled, but if you needed to 
-[install Helm](https://helm.sh/docs/intro/install/) elsewhere you could install 
+Helm v4 is preinstalled, but if you needed to
+[install Helm](https://helm.sh/docs/intro/install/) elsewhere you could install
 it with the following.
 
 ```shell
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4
 chmod 700 get_helm.sh
 ./get_helm.sh
+helm version
 ```
 
 ## Using Helm to install workflow
@@ -32,7 +33,7 @@ look at them argument-by-argument.
 
   - `helm repo add`- the command
   - `kiali`- **repo name**
-  - `https://kiali.org/helm-charts`- repo URL 
+  - `https://kiali.org/helm-charts`- repo URL
 
   We only need to do this once.
 
@@ -43,8 +44,6 @@ look at them argument-by-argument.
   to use the repository after a few days have passed. No harm in doing it more
   frequently.
 
-  Since we just added the repository, it is unlikely to have any effect.
-
 - `helm install --namespace istio-system --create-namespace kiali-server kiali/kiali-server`
 
   This command follows the chart instructions to install an application or
@@ -53,7 +52,7 @@ look at them argument-by-argument.
 
   - `helm install`- the command
   - `--namespace istio-system`- install into the `istio-system` namespace
-  - `--create-namespace`- create the `istio-system` namespace if it doesn't exist
+  - `--create-namespace`- create the namespace if it doesn't exist
   - `kiali-server`- **release name**
   - `kiali/kiali-server`- **repo name**/**chart name**
 
@@ -85,12 +84,12 @@ look at them argument-by-argument.
 We installed Kiali using Helm to get a chance to try Helm. Even though it looks
 like things worked, we should look at Kiali itself to see if it is useable.
 
-Kiali is accessable as a web application once it is installed, but as we
+Kiali is accessible as a web application once it is installed, but as we
 remember from [05-Ingress](../05-Ingress/README.md), there are things we have to
-do to make it available from outside the cluster. 
+do to make it available from outside the cluster.
 
 Before we get that far, though, we can check if we can access it from within the
-cluster. For that, we can try `kubectl port-forward`. 
+cluster. For that, we can try `kubectl port-forward`.
 
 Open a new terminal using <kbd>Alt</kbd>-<kbd>T</kbd>, and in that window start
 the port forwarding. First, we'll need to know where the service is listening.
@@ -101,7 +100,7 @@ kubectl port-forward service/kiali 15001:20001 -n istio-system
 ```
 
 That will forward traffic sent to `localhost` on port `15001` to the `kiali`
-service on port `20001`. Leave that running. 
+service on port `20001`. Leave that running.
 
 Remembering back to our experiences in
 [03-Networking](../03-Networking/README.md), we know that means *within the
@@ -136,7 +135,7 @@ namespace.
 
 ```yaml
 ---
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: redirect
@@ -155,8 +154,8 @@ metadata:
     traefik.ingress.kubernetes.io/router.middlewares: istio-system-redirect@kubernetescrd
 spec:
   rules:
-  - host: william.codemash.otherdevopsgene.dev # replace william with your username
-    # or william.codemash.otherdevopsgene.work or william.codemash.otherdevopsgene.xyz
+  - host: william.techbash.otherdevopsgene.dev # replace william with your username
+    # or william.techbash.otherdevopsgene.work or william.techbash.otherdevopsgene.xyz
     http:
       paths:
       - path: /kiali
@@ -168,7 +167,7 @@ spec:
               number: 20001
   tls:
   - hosts:
-    - william.codemash.otherdevopsgene.dev # match the host above
+    - william.techbash.otherdevopsgene.dev # match the host above
     secretName: acme-tls-cert
 ```
 
@@ -185,7 +184,7 @@ document YAML file.
 
 We added the namespace to the `kubectl apply` command. We could have used
 `--namespace istio-system` to be clearer, but namespaces are so common that we
-almost always shorten it to save typing.
+almost always shorten the flag to `-n` to save typing.
 
 Along with that, we can see all the ingresses (both of them) across the
 namespaces by querying `--all-namespaces`, or `-A` for short.
@@ -195,7 +194,7 @@ kubectl get ingress -A
 ```
 
 And we can now reach Kiali from our laptop at
-`https://william.codemash.otherdevopsgene.dev/kiali`, replacing `william` with
+`https://william.techbash.otherdevopsgene.dev/kiali`, replacing `william` with
 your username as we did earlier with our first ingress and using `.work` or
 `.xyz` as the top-level domain if we didn't use `.dev`.
 
@@ -216,7 +215,7 @@ error: failed to create token: serviceaccounts "kiali-service-account" not found
 ```
 
 *Notice* that the namespace can go almost anywhere in the command. Earlier is
-often better for command completion.
+often better for the shell to help with command completion.
 
 So the docs and the Helm chart aren't 100% in sync. The crux is that we need
 to know the name of the service account for the token. But there is enough
@@ -236,22 +235,22 @@ kubectl -n istio-system create token kiali
 Copy-and-pasting that long string gets us into Kiali, although there are a few
 scattered errors about `prometheus.istio-system` not being found.
 
-[Prometheus](https://prometheus.io/) is a very popular metrics tool. We can look
-for a Helm chart to install that as well by searching Google or search the
+[Prometheus](https://prometheus.io/) is a very popular metrics collector. We can
+look for a Helm chart to install that as well by searching Google or search the
 Artifact Hub for Helm.
 
 ```shell
 helm search hub prometheus
 ```
 
-That returns us way more options than we could sort through. The frst one
+That returns us way more options than we could sort through. The first one
 happens to be the one we want, but we also need the URL for the repo so we can
 add it.
 
 ```console
 $ helm search hub prometheus --list-repo-url | head -2
-URL                                                     CHART VERSION   APP VERSION             DESCRIPTION                                             REPO URL                                          
-https://artifacthub.io/packages/helm/prometheus...      26.1.0          v3.1.0                  Prometheus is a monitoring system and time seri...      https://prometheus-community.github.io/helm-charts
+URL                                                     CHART VERSION           APP VERSION             DESCRIPTION                                             REPO URL                                          
+https://artifacthub.io/packages/helm/prometheus...      29.27.1                 v3.14.0                 Prometheus is a monitoring system and time seri...      https://prometheus-community.github.io/helm-charts
 $ helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 "prometheus-community" has been added to your repositories
 ```
@@ -261,6 +260,7 @@ Now we can see the repository has been added and then we can search the
 
 ```shell
 helm repo list
+helm repo update
 helm search repo prometheus-community
 ```
 
@@ -276,7 +276,7 @@ used them and actually found what I was looking for.
 In my experience, The best way to find the Helm chart for a particular tool is a
 generic Internet search (e.g., `prometheus helm chart`). Sometimes, there are
 many options of various countenance and differing quality. But most of the time,
-there is a vendor or community supported official or official-ish Helm chart to
+there is a vendor or community-supported official or official-ish Helm chart to
 use.
 
 When it comes to finding a tool that can be installed with Helm, I usually turn
@@ -286,11 +286,11 @@ need will be listed there. And they almost always have a Helm chart.
 
 ## Exercise
 
-1. Use Helm to install Prometheus in the `istio-system` namespace. 
+1. Use Helm to install Prometheus in the `istio-system` namespace.
 2. Update our `kiali-ingress` to send `/prometheus` traffic to port `80` on
    the `prometheus` service.
 
-<!-- helm install prometheus prometheus-community/prometheus -n istio-system -->
+<!-- helm install prometheus prometheus-community/prometheus -n istio-system -f values.html -->
 
 <!--  
       - path: /prometheus
@@ -304,22 +304,22 @@ need will be listed there. And they almost always have a Helm chart.
 
 ## Aftermath
 
-While that was good practice using Helm, our little cluster isn't big enough to
-handle everything we've thrown at it. Many of the pods we are using are now or
-will very soon be `Evicted`, kicked out for something the Kubernetes scheduler
-thinks is more important.
+While that was good practice using Helm, our little cluster might not be big
+enough to handle everything we've thrown at it. When we run out of memory on our
+Cloud9 instance, some of the pods we are using are now or will very soon be
+`Evicted`, kicked out for something the Kubernetes scheduler thinks is more
+important.
 
 Fixing the Prometheus installation would be the right way forward, but we would
 need a bigger cluster to do that. Instead, let's use Helm to undo the damage by
-uninstalling Prometheus. Or at least to practice some more commands.
+uninstalling Prometheus and Kiali. Or at least to practice some more commands.
 
 ```shell
 helm uninstall prometheus -n istio-system
 helm uninstall kiali-server -n istio-system
-kubectl delete deployments details productpage ratings reviews
 ```
 
-We've overwhelmed our cluster so much that it won't fix itself, at least not
-right away. But this makes a good stopping point.
+We might have overwhelmed our cluster so much that it won't fix itself even
+then, at least not right away. But this makes a good stopping point.
 
 ## End of lesson

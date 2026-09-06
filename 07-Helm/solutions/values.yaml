@@ -1,0 +1,4 @@
+server:
+  extraArgs:
+    web.external-url: "https://william.techbash.otherdevopsgene.dev/prometheus"
+    web.route-prefix: "/prometheus"
