@@ -38,7 +38,7 @@ Let's see the services we created.
 kubectl get services
 ```
 
-We see four services- the three we just started and one that k3s already had
+We see four services- the three we just started and one that `k3s` already had
 running. And although we didn't specify, they all have a type of `ClusterIP`.
 
 `ClusterIP` is the default networking option and means that the networking is
@@ -110,7 +110,7 @@ kubectl exec reviews -- curl -sS http://productpage:9080/productpage
 
 The `kubectl exec` command runs the follow commands (everything after `--`) on
 the pod requested. Whatever command we run has to be available on the container
-we are running it from- there is no magic installation of utitilties happening.
+we are running it from- there is no magic installation of utilities happening.
 But that can make `kubectl exec` a powerful troubleshooting tool.
 
 If needed, we could even stand up a pod within the cluster that had the tool or
@@ -119,23 +119,30 @@ troubleshooting.
 
 ```console
 $ kubectl run -it --rm --restart=Never curl --image=alpine/curl sh
+All commands and output from this session will be recorded in container logs, including credentials and sensitive information passed through the command prompt.
 If you don't see a command prompt, try pressing enter.
 # curl -sS http://productpage:9080/productpage
 ...
 # exit
-pod "curl" deleted
+pod "curl" deleted from default namespace
 ```
 
 or
 
 ```console
-$ kubectl run -it --rm --restart=Never busybox --image=gcr.io/google-containers/busybox nslookup productpage
-Server:    10.43.0.10
-Address 1: 10.43.0.10 kube-dns.kube-system.svc.cluster.local
+$ kubectl run -it --rm --restart=Never alpine-bind-tools --image=docker.io/otherdevopsgene/alpine-bind-tools nslookup productpage
+;; Got recursion not available from 10.43.0.10
+Server:         10.43.0.10
+Address:        10.43.0.10#53
 
-Name:      productpage
-Address 1: 10.43.60.234 productpage.default.svc.cluster.local
-pod "busybox" deleted
+Name:   productpage.default.svc.cluster.local
+Address: 10.43.18.190
+;; Got recursion not available from 10.43.0.10
+
+All commands and output from this session will be recorded in container logs, including credentials and sensitive information passed through the command prompt.
+If you don't see a command prompt, try pressing enter.
+Session ended, resume using 'kubectl attach alpine-bind-tools -c alpine-bind-tools -n default -i -t' command
+pod "alpine-bind-tools" deleted from default namespace
 ```
 
 Again, this only works within the cluster itself.
@@ -167,7 +174,7 @@ curl -sS http://${PRIVATE_IPV4}:33333/productpage
 
 If the high ports for `NodePort` were open between systems, you could use your
 neighbor's private IP address to access their copy of the app. In our case,
-those port **are** open, specifically for this experiment. Normally, there woud
+those port **are** open, specifically for this experiment. Normally, there would
 be no good reason to keep them open, and very good reasons not to.
 
 Ask your neighbor for their private IP address, and replace `172.111.222.444`

@@ -7,8 +7,8 @@ metadata:
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
 spec:
   rules:
-  - host: william.codemash.otherdevopsgene.dev # replace william with your username
-    # or william.codemash.otherdevopsgene.work or william.codemash.otherdevopsgene.xyz
+  - host: william.techbash.otherdevopsgene.dev # replace william with your username
+    # or william.techbash.otherdevopsgene.work or william.techbash.otherdevopsgene.xyz
     http:
       paths:
       - path: /
@@ -34,5 +34,5 @@ spec:
               number: 9080
   tls:
   - hosts:
-    - william.codemash.otherdevopsgene.dev # match the host above
+    - william.techbash.otherdevopsgene.dev # match the host above
     secretName: acme-tls-cert

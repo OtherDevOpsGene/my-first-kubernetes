@@ -6,7 +6,7 @@ just scaling. So now we'll take a look at how Kubernetes deployments handle
 
 ## Failed deployments
 
-Until now, we've been ignoring the `ratings` microservice in the **Bookinfo**
+Until now, we've been ignoring the `ratings` microservice in the **BookInfo**
 application.
 
 <img src="../bookinfo-basic.svg">
@@ -79,8 +79,8 @@ Events:
 ```
 
 Not surprising, since we arranged the situation deliberately, the cluster
-couldn't pull the fictional image we specified, then gave us an `ErrImagePull`
-and eventually `ImagePullBackOff` once it was giving up on trying.
+couldn't pull the non-existent image we specified, then gave us an `ErrImagePull`
+and eventually `ImagePullBackOff` once it gave up trying.
 
 The key lesson is to check the `kubectl describe` and look at what happened if
 the pods aren't running. More often than not the `ImagePullBackOff` is a
@@ -88,8 +88,8 @@ misnamed image, perhaps a permissions issue when dealing with a private image
 registry.
 
 The fix is simple. In `ratings.yaml`, update the image to
-`docker.io/istio/examples-bookinfo-ratings-v1:1.20.2` (and preferably update
-the name accordingly).
+`docker.io/istio/examples-bookinfo-ratings-v1:1.20.3` (and preferably update
+the `wrongratings` name accordingly).
 
 Because it is a deployment, as soon as we apply the changed manifest, Kubernetes
 will orchestrate a *rollout*. It has always been doing that for us, we just
@@ -140,16 +140,18 @@ kubectl apply -f ratings.yaml
 kubectl rollout status deployment reviews ratings
 ```
 
-We should load up the page in our browser
-(`https://william.codemash.otherdevopsgene.dev/productpage`) so we can remind
+After a few seconds, success.
+
+At this point, we should load up the page in our browser
+(`https://william.techbash.otherdevopsgene.dev/productpage`) so we can remind
 ourselves what version 1 of `reviews` looks like.
 
-Finally, in the `reviews` manifest, switch the `image` and `name` to `v2`:
+Next, in the `reviews` manifest, switch the `image` and `name` to `v2`:
 
 ```yaml
     spec:
       containers:
-      - image: docker.io/istio/examples-bookinfo-reviews-v2:1.20.2
+      - image: docker.io/istio/examples-bookinfo-reviews-v2:1.20.3
         name: examples-bookinfo-reviews-v2
 ```
 
@@ -169,7 +171,7 @@ We can update further to version 3 to see red stars.
 ```yaml
     spec:
       containers:
-      - image: docker.io/istio/examples-bookinfo-reviews-v3:1.20.2
+      - image: docker.io/istio/examples-bookinfo-reviews-v3:1.20.3
         name: examples-bookinfo-reviews-v3
 ```
 
@@ -182,7 +184,7 @@ Let's go one more to version 4.
 ```yaml
     spec:
       containers:
-      - image: docker.io/istio/examples-bookinfo-reviews-v4:1.20.2
+      - image: docker.io/istio/examples-bookinfo-reviews-v4:1.20.3
         name: examples-bookinfo-reviews-v4
 ```
 

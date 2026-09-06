@@ -26,10 +26,10 @@ echo PUBLIC_IPV4 = ${PUBLIC_IPV4}
 
 Now we can get back to the problem at hand.
 
-## Bookinfo
+## BookInfo
 
 For example, let's consider the fairly simple application shown below, known as
-**Bookinfo**.
+**BookInfo**.
 
 <img src="../bookinfo-basic.svg">
 
@@ -41,11 +41,11 @@ environment variables. Kubernetes calls this *service discovery*, which we are
 doing manually.
 
 ```shell
-docker run --rm -d -p 9081:9080 docker.io/istio/examples-bookinfo-reviews-v1:1.20.2
-docker run --rm -d -p 9082:9080 docker.io/istio/examples-bookinfo-details-v1:1.20.2
+docker run --rm -d -p 9081:9080 docker.io/istio/examples-bookinfo-reviews-v1:1.20.3
+docker run --rm -d -p 9082:9080 docker.io/istio/examples-bookinfo-details-v1:1.20.3
 docker run --rm -d -e REVIEWS_HOSTNAME=${PRIVATE_IPV4} -e REVIEWS_SERVICE_PORT=9081 \
   -e DETAILS_HOSTNAME=${PRIVATE_IPV4} -e DETAILS_SERVICE_PORT=9082 \
-  -p 8080:9080 docker.io/istio/examples-bookinfo-productpage-v1:1.20.2
+  -p 8080:9080 docker.io/istio/examples-bookinfo-productpage-v1:1.20.3
 ```
 
 We exposed the `productpage` service on port 8080 to avoid permissions problems
@@ -64,7 +64,7 @@ not `https`). Replace `111.222.333.444` with your public IP address.
 
 If we mapped a domain name to the public IP address (which we did), we could use
 that instead. We can try with
-`http://username.codemash.otherdevopsgene.dev:8080/productpage`. Replace
+`http://username.techbash.otherdevopsgene.dev:8080/productpage`. Replace
 `username` with the username you used to login to AWS. If you get an error, your
 browser is probably protecting you by *fixing* the URL to use `https`.
 

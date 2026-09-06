@@ -8,24 +8,24 @@ Now, we are going to look at something that might be appropriate for production.
 
 ## Load balancers
 
-**Spoiler**: We aren't going to spend any time on load balancers. Although they are
-truly the next level of networking in the Kubernetes world, after `ClusterIP` and
-`NodePort`, they are often implemented outside the cluster itself. That presents
-some logistical challenges, and potentially cost, in a workshop with many
-students.
+**Spoiler**: We aren't going to spend any time on load balancers. Although they
+are truly the next level of networking in the Kubernetes world, after
+`ClusterIP` and `NodePort`, they are often implemented outside the cluster
+itself. That presents some logistical challenges, and frankly cost in a workshop
+with many students.
 
 They work operate very much like traditional load balancers, and in
 Kubernetes they also can be used to make an application within the cluster
 accessible to the world outside.
 
 In turn, they have a significant overlap with an `Ingress`, which also can be
-used to make an application accisible from outside the cluster. And an ingress
+used to make an application accessible from outside the cluster. And an ingress
 is often implemented within the cluster. For this reason, ingresses are a
 popular alternative to load balancers in the Kubernetes world.
 
 In our particular case, `k3s` provides a `LoadBalancer` implementation within
 the cluster as well as an `Ingress`, but the `Ingress` will be more interesting
-to see.
+to see. It does this via an included tool called *Traefik*.
 
 ## Ingress
 
@@ -57,18 +57,22 @@ kubectl get ingresses
 kubectl describe ingress bookinfo-ingress
 ```
 
-Note that the class is listed as `traefik`, which is an ingress controller that
+Note that the class is listed as `traefik`, which is the ingress controller that
 is distributed with `k3s`. The ingress is assigned the IP address of the system
 we are using, albeit listed as the private IP.
 
 As configured, all traffic (path prefix '/') is sent to port 9080 on the
 `productpage` service. We can try it.
 
+**NOTE:** Because of the way the BookInfo application is written, it is
+expecting the `/productpage` on the URL. That is a BookInfo quirk, not the way
+our ingress is behaving.
+
 ```shell
 curl -sS http://${PRIVATE_IPV4}/productpage
 ```
 
-Like the NodePort configuration, this works even from our neighbor's
+Like the NodePort configuration, ingresses work even from our neighbor's
 environment. It won't work as is from your laptop since `k3s` only
 knows about the private IP address. But if we had a public IP address (we do),
 and the firewalls were open (they are), we could use the public IP.
@@ -91,11 +95,11 @@ Then on the laptop, use `http://111.222.333.444/productpage`, replacing
 
 Back in the first lesson, we discussed that could use a domain name if we mapped
 it to the public IP address (which we did). Try
-`http://william.codemash.otherdevopsgene.dev/productpage`. Replace `william`
+`http://william.techbash.otherdevopsgene.dev/productpage`. Replace `william`
 with the username you used to login to AWS and use `.work` or `.xyz` as the
 top-level domain if you didn't use `.dev`. If you get an error, your browser is
 probably protecting you by *fixing* the URL to use `https`. If you get a warning
-that your connection is no private, your browser is *definitely* protecting you
+that your connection is not private, your browser is *definitely* protecting you
 by using `https`.
 
 Turns out, we can make that work, too.
@@ -111,7 +115,7 @@ declarative form doesn't expect a certain starting state, we can use a manifest
 for a third-party plugin to install itself on our cluster.
 
 ```shell
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.yaml
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.21.1/cert-manager.yaml
 ```
 
 That isn't a single resource, but a file with many resources in it. A lot of the
@@ -137,7 +141,7 @@ We can see there are a few, most of which have been around since we started
 (based on their age), and then the one new namespace called `cert-manager`.
 
 Namespaces are a way to logically segment applications and resources. Until now,
-we've been working in the default namespace, conventiently called `default`. But
+we've been working in the default namespace, conveniently called `default`. But
 almost every command we've used so far can also take a `--namespace` option.
 
 ```shell
@@ -190,8 +194,9 @@ kubectl get clusterissuer
 kubectl describe clusterissuer
 ```
 
-The `ClusterIssuer` doesn't live in a namespace because it is cluster-wide.
-There is a version called an `Issuer` that can be namespace-specific.
+The `ClusterIssuer` doesn't live in a namespace because it is cluster-wide. If
+you need it, though, there is a version called an `Issuer` that is
+namespace-specific.
 
 Aside from the information we supplied, we can see some status that says we
 registered with the ACME server, which is the certificate authority called
@@ -199,7 +204,7 @@ registered with the ACME server, which is the certificate authority called
 
 ## Secrets
 
-Some other resouces got created as well. Let's look into one in particular.
+Some other resources got created as well. Let's look into one in particular.
 
 ```shell
 kubectl get secrets -n cert-manager
@@ -248,8 +253,8 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-cert # name from cluster-issuer
 spec:
   rules:
-  - host: william.codemash.otherdevopsgene.dev # replace william with your username
-    # or william.codemash.otherdevopsgene.work or william.codemash.otherdevopsgene.xyz
+  - host: william.techbash.otherdevopsgene.dev # replace william with your username
+    # or william.techbash.otherdevopsgene.work or william.techbash.otherdevopsgene.xyz
     http:
       paths:
       - path: /
@@ -261,7 +266,7 @@ spec:
               number: 9080
   tls:
   - hosts:
-    - william.codemash.otherdevopsgene.dev # match the host above
+    - william.techbash.otherdevopsgene.dev # match the host above
     secretName: acme-tls-cert
 ```
 
@@ -283,11 +288,12 @@ section.
 Notice that the `TLS` section says that `acme-tls-cert` (our certificate)
 terminates our FQDN. That means that once the TLS-encrypted traffic arrives at
 our ingress, the ingress will pass unencrypted, plain HTTP traffic on to the
-service in our cluster. So our service (or services) don't need to handle TLS
+service in our cluster. So our service (or services) doesn't need to handle TLS
 traffic, but external users still get the protections of TLS.
 
 There are other options for protecting the internal traffic and ways for Traefik
-to not terminate if your use case calls for those.
+to not terminate if your use case calls for those. It is not something we are
+going to cover.
 
 Let's take a quick look at the certificate.
 
@@ -316,7 +322,7 @@ redirect to `https`.
 On your laptop, check the current behavior.
 
 ```shell
-curl --head -sS http://william.codemash.otherdevopsgene.dev/productpage
+curl --head -sS http://william.techbash.otherdevopsgene.dev/productpage
 ```
 
 Notice the `200 OK`.
@@ -324,10 +330,16 @@ Notice the `200 OK`.
 Now we can configure our ingress. This step happens to be Traefik-specific, as
 we'll see from the `apiVersion`.
 
-Create and apply `middleware.yaml`:
+Install a few CRDs we'll need for Traefik:
+
+```shell
+kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v3.7/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
+```
+
+Then, create and apply `middleware.yaml`:
 
 ```yaml
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: redirect
@@ -359,13 +371,13 @@ kubectl apply -f ingress.yaml
 And let's test from our laptops again.
 
 ```shell
-curl --head -sS http://william.codemash.otherdevopsgene.dev/productpage
+curl --head -sS http://william.techbash.otherdevopsgene.dev/productpage
 ```
 
 Notice the `308 Permanent Redirect`
 
 ```shell
-curl --head -sS https://william.codemash.otherdevopsgene.dev/productpage
+curl --head -sS https://william.techbash.otherdevopsgene.dev/productpage
 ```
 
 Works as expected. We can confirm the behavior with our web browsers, too.
@@ -374,6 +386,9 @@ Works as expected. We can confirm the behavior with our web browsers, too.
 
 Modify the `bookinfo-ingress` to allow access to the `details` and `reviews`
 services from outside the cluster using `https`.
+
+Note that the `reviews` service requires a book ID (e.g., `/2`) or it will
+return a **404 Not Found** error. Again, this is a BookInfo behavior.
 
 ## End of lesson
 

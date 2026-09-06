@@ -1,5 +1,5 @@
 ---
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: redirect
@@ -9,17 +9,28 @@ spec:
     scheme: https
     permanent: true
 ---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: prometheus-strip
+  namespace: istio-system
+spec:
+  stripPrefix:
+    prefixes:
+      - /prometheus
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: kiali-ingress
+  namespace: istio-system
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-cert
-    traefik.ingress.kubernetes.io/router.middlewares: istio-system-redirect@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: istio-system-redirect@kubernetescrd, istio-system-prometheus-strip@kubernetescrd
 spec:
   rules:
-  - host: william.codemash.otherdevopsgene.dev # replace william with your username
-    # or william.codemash.otherdevopsgene.work or william.codemash.otherdevopsgene.xyz
+  - host: william.techbash.otherdevopsgene.dev # replace william with your username
+    # or william.techbash.otherdevopsgene.work or william.techbash.otherdevopsgene.xyz
     http:
       paths:
       - path: /kiali
@@ -38,5 +49,5 @@ spec:
               number: 80
   tls:
   - hosts:
-    - william.codemash.otherdevopsgene.dev # match the host above
+    - william.techbash.otherdevopsgene.dev # match the host above
     secretName: acme-tls-cert
